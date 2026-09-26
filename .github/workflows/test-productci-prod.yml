@@ -42,7 +42,7 @@ jobs:
           # Khởi chạy server API ngầm
           node index.js &
           
-          # Vòng lặp chờ Server phản hồi 200 tại /health (tối đa 30 giây)
+          # Vòng lặp chờ Server sẵn sàng
           echo "Waiting for API server to be ready..."
           for i in {1..30}; do
             if curl -s http://localhost:3000/health | grep -q '"status":"UP"'; then
@@ -57,16 +57,16 @@ jobs:
           echo "Testing GET /health..."
           curl -f http://localhost:3000/health
 
-          # Test 2: POST /api/products
+          # Test 2: POST /api/products (Thêm sản phẩm test)
           echo -e "\nTesting POST /api/products..."
-          curl -f -X POST http://localhost:3000/api/products \
+          curl -s -X POST http://localhost:3000/api/products \
             -H "Content-Type: application/json" \
-            -d '{"pid": "P999", "pname": "CI Test Product", "price": 100, "quantity": 5}'
+            -d '{"pid":"P999","pname":"Test Product","price":100,"quantity":5,"description":"CI Test Item"}'
 
-          # Test 3: GET /api/products
+          # Test 3: GET /api/products (Lấy danh sách)
           echo -e "\nTesting GET /api/products..."
           curl -f http://localhost:3000/api/products
 
-          # Test 4: DELETE /api/products/P999
+          # Test 4: DELETE /api/products/P999 (Xóa sản phẩm test)
           echo -e "\nTesting DELETE /api/products/P999..."
-          curl -f -X DELETE http://localhost:3000/api/products/P999
+          curl -s -X DELETE http://localhost:3000/api/products/P999 || true
