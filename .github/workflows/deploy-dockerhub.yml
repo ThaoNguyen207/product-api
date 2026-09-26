@@ -57,91 +57,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Hạ chữ viết hoa trong Username để phù hợp với quy chuẩn Docker Hub
-      - name: Lowercase Docker Hub Repo Name
-        id: repo_name
-        run: |
-          echo "IMAGE_NAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}/product-api" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
       - name: Build and Push Docker Image to Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ${{ steps.repo_name.outputs.IMAGE_NAME }}:latest
-            ${{ steps.repo_name.outputs.IMAGE_NAME }}:${{ github.sha }}
-EOFcat << 'EOF' > .github/workflows/deploy-dockerhub.yml
-name: Product API CD to Docker Hub
-
-on:
-  push:
-    branches: [ "main" ]
-
-jobs:
-  ci-healthcheck-and-cd:
-    runs-on: ubuntu-latest
-
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})' || mongo --eval 'db.runCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build Local Docker Image
-        run: |
-          docker build -t product-api:test .
-
-      - name: Validate Healthcheck in CI
-        env:
-          PORT: 3000
-          MONGO_URI: mongodb://mongodb:27017/product_db_ci
-        run: |
-          docker run -d --name test-app \
-            --network host \
-            -e PORT=3000 \
-            -e MONGO_URI="mongodb://localhost:27017/product_db_ci" \
-            product-api:test
-
-          echo "Waiting for Docker container healthcheck..."
-          for i in {1..30}; do
-            if curl -s http://localhost:3000/health | grep -q '"status":"UP"'; then
-              echo "Healthcheck passed: Container is healthy!"
-              break
-            fi
-            echo "Waiting for app to start..."
-            sleep 1
-          done
-
-          curl -f http://localhost:3000/health
-          docker rm -f test-app
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # Hạ chữ viết hoa trong Username để phù hợp với quy chuẩn Docker Hub
-      - name: Lowercase Docker Hub Repo Name
-        id: repo_name
-        run: |
-          echo "IMAGE_NAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}/product-api" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
-      - name: Build and Push Docker Image to Docker Hub
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ steps.repo_name.outputs.IMAGE_NAME }}:latest
-            ${{ steps.repo_name.outputs.IMAGE_NAME }}:${{ github.sha }}
+            thaonguyen207/product-api:latest
+            thaonguyen207/product-api:${{ github.sha }}

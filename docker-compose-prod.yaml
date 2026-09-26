@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # 1. MongoDB Database Service
   mongodb:
     image: mongo:latest
     container_name: mongodb_prod
@@ -20,7 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Product API Service (Kéo từ Docker Hub)
   product-api:
     image: thaonguyen207/product-api:latest
     container_name: product_api_prod
