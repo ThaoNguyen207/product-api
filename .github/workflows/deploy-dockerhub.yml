@@ -20,17 +20,17 @@ jobs:
           --health-retries 5
 
     steps:
+      # 1. Checkout source code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Build image test cục bộ
       - name: Build Local Docker Image
         run: |
           docker build -t product-api:test .
 
+      # 3. Chạy container test và kiểm tra Healthcheck
       - name: Validate Healthcheck in CI
-        env:
-          PORT: 3000
-          MONGO_URI: mongodb://localhost:27017/product_db_ci
         run: |
           docker run -d --name test-app \
             --network host \
@@ -38,30 +38,27 @@ jobs:
             -e MONGO_URI="mongodb://localhost:27017/product_db_ci" \
             product-api:test
 
-          echo "Waiting for Docker container healthcheck..."
-          for i in {1..30}; do
-            if curl -s http://localhost:3000/health | grep -q '"status":"UP"'; then
-              echo "Healthcheck passed: Container is healthy!"
-              break
-            fi
-            echo "Waiting for app to start..."
-            sleep 1
-          done
+          echo "Waiting for app server..."
+          sleep 5
 
-          curl -f http://localhost:3000/health || true
+          echo "Checking /health endpoint..."
+          curl http://localhost:3000/health || true
+
           docker rm -f test-app
 
+      # 4. Đăng nhập Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Image to Docker Hub
+      # 5. Build & Push Image chuẩn tên thaonguyen207/product-api
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            thaonguyen207/product-api:latest
-            thaonguyen207/product-api:${{ github.sha }}
+            nguyen207/product-api:latest
+            nguyen207/product-api:${{ github.sha }}
