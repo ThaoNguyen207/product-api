@@ -10,7 +10,6 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
 
-    # Khởi tạo Service Container MongoDB trên máy ảo GitHub Runner
     services:
       mongodb:
         image: mongo:latest
@@ -23,47 +22,36 @@ jobs:
           --health-retries 5
 
     steps:
-      # 1. Checkout mã nguồn dự án
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Cài đặt Node.js v18
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
 
-      # 3. Cài đặt dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 4. Kiểm thử kết nối MongoDB & API Healthcheck trên môi trường thực tế
       - name: Run Integration Tests
         env:
           PORT: 3000
           MONGO_URI: mongodb://localhost:27017/product_db_ci
         run: |
-          # Khởi chạy server API chạy ngầm
           node index.js &
-          
-          # Đợi 5 giây để server khởi động và kết nối MongoDB
           sleep 5
           
-          # Test Endpoint kiểm tra sức khỏe
           echo "Testing GET /health..."
           curl -f http://localhost:3000/health
 
-          # Test 1: Tạo sản phẩm mới (CREATE)
           echo -e "\nTesting POST /api/products..."
-          curl -X POST http://localhost:3000/api/products \
+          curl -f -X POST http://localhost:3000/api/products \
             -H "Content-Type: application/json" \
             -d '{"pid": "P999", "pname": "CI Test Product", "price": 100, "quantity": 5}'
 
-          # Test 2: Lấy danh sách sản phẩm (READ ALL)
           echo -e "\nTesting GET /api/products..."
           curl -f http://localhost:3000/api/products
 
-          # Test 3: Xóa sản phẩm test (DELETE)
           echo -e "\nTesting DELETE /api/products/P999..."
-          curl -X DELETE http://localhost:3000/api/products/P999
+          curl -f -X DELETE http://localhost:3000/api/products/P999
