@@ -39,9 +39,12 @@ jobs:
           PORT: 3000
           MONGO_URI: mongodb://localhost:27017/product_db_ci
         run: |
+          # Khởi chạy server API ngầm
           node index.js &
-          sleep 5
           
+          # Đợi server khởi động thành công và phản hồi HTTP 200 tại /health
+          npx wait-on http://localhost:3000/health -t 30000
+
           echo "Testing GET /health..."
           curl -f http://localhost:3000/health
 
