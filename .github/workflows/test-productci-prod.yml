@@ -42,19 +42,31 @@ jobs:
           # Khởi chạy server API ngầm
           node index.js &
           
-          # Đợi server khởi động thành công và phản hồi HTTP 200 tại /health
-          npx wait-on http://localhost:3000/health -t 30000
+          # Vòng lặp chờ Server phản hồi 200 tại /health (tối đa 30 giây)
+          echo "Waiting for API server to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/health | grep -q '"status":"UP"'; then
+              echo "API is UP and ready!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 1
+          done
 
+          # Test 1: GET /health
           echo "Testing GET /health..."
           curl -f http://localhost:3000/health
 
+          # Test 2: POST /api/products
           echo -e "\nTesting POST /api/products..."
           curl -f -X POST http://localhost:3000/api/products \
             -H "Content-Type: application/json" \
             -d '{"pid": "P999", "pname": "CI Test Product", "price": 100, "quantity": 5}'
 
+          # Test 3: GET /api/products
           echo -e "\nTesting GET /api/products..."
           curl -f http://localhost:3000/api/products
 
+          # Test 4: DELETE /api/products/P999
           echo -e "\nTesting DELETE /api/products/P999..."
           curl -f -X DELETE http://localhost:3000/api/products/P999
