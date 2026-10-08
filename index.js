@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const crypto = require('crypto');
 const mongoose = require('mongoose');
 const Product = require('./models/Product');
 
@@ -16,14 +15,7 @@ mongoose
   .connect(MONGO_URI)
   .then(() => console.log('✅ Đã kết nối thành công tới MongoDB (container: nammongodb)'))
   .catch((err) => console.error('❌ Lỗi kết nối MongoDB:', err.message));
-// Route kiểm tra sức khỏe của API (Healthcheck endpoint)
-app.get('/health', (req, res) => {
-  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-  if (dbStatus === 'connected') {
-    return res.status(200).json({ status: 'UP', database: dbStatus });
-  }
-  return res.status(503).json({ status: 'DOWN', database: dbStatus });
-});
+
 // ==================== CÁC ĐƯỜNG DẪN RESTFUL API (CRUD) ====================
 
 // 1. CREATE: Tạo sản phẩm mới
@@ -34,7 +26,8 @@ app.post('/api/products', async (req, res) => {
     const savedProduct = await newProduct.save();
     res.status(201).json({ success: true, data: savedProduct });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error(error.stack);
+    res.status(400).json({ success: false, message: error.stack });
   }
 });
 
