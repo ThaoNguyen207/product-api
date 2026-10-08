@@ -63,5 +63,5 @@ jobs:
           context: .
           push: true
           tags: |
-            thaonguyen207/product-api:latest
-            thaonguyen207/product-api:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/product-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/product-api:${{ github.sha }}
