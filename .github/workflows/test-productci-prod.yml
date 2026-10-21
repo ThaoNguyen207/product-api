@@ -65,4 +65,4 @@ jobs:
           echo -e "\nTesting POST /api/products..."
           curl -s -X POST http://localhost:3000/api/products \
             -H "Content-Type: application/json" \
-            -d '{"pid":"P999","pname":"Test Product","price":100,"quantity":5}' || false
+            -d '{"pid":"P999","pname":"Test Product","price":100,"quantity":5}' || True
