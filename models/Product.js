@@ -19,7 +19,8 @@ const productSchema = new mongoose.Schema(
     },
     quantity: {
       type: Number,
-      required: [true, 'Số lượng (quantity) là bắt buộc'],
+      required: [false
+        , 'Số lượng (quantity) là bắt buộc'],
       min: [0, 'Số lượng không được nhỏ hơn 0'],
       default: 0
     }
